@@ -260,8 +260,8 @@ RSpec.describe WeaveCloth do
   end
 
   describe 'a loom that already holds thread' do
-    let(:loaded_with_cotton) { ReplayGame.code('The loom is loaded with some cotton thread.', from: 'weave-cloth.lic@c2739670:6') }
-    let(:nothing_to_pull) { ReplayGame.code('You see nothing to pull.', from: 'weave-cloth.lic@c2739670:8') }
+    let(:loaded_with_cotton) { log('2052:12437') }
+    let(:nothing_to_pull) { log('2052:12457') }
 
     before do
       game.script('look on loom', loaded_with_cotton)
@@ -505,7 +505,7 @@ RSpec.describe WeaveCloth do
 
   describe 'thread left on the loom after the weave' do
     let(:loaded_with_silk) { ReplayGame.code('The loom is loaded with some heavy silk thread.', from: 'weave-cloth.lic@c2739670:6') }
-    let(:nothing_to_pull) { ReplayGame.code('You see nothing to pull.', from: 'weave-cloth.lic@c2739670:8') }
+    let(:nothing_to_pull) { log('2052:12457') }
 
     before do
       script_empty_loom_and_load
@@ -682,7 +682,7 @@ RSpec.describe WeaveCloth do
   end
 
   describe 'a pulled thread whose hand shows no id' do
-    let(:loaded_with_cotton) { ReplayGame.code('The loom is loaded with some cotton thread.', from: 'weave-cloth.lic@c2739670:6') }
+    let(:loaded_with_cotton) { log('2052:12437') }
 
     it 'stops with the thread in hand rather than guess at it' do
       game.script('look on loom', loaded_with_cotton)
@@ -1095,6 +1095,23 @@ RSpec.describe WeaveCloth do
       WeaveCloth.new
 
       expect(game.sent.grep(/\Aput #\d+ on loom\z/)).to eq(['put #1963477 on loom', 'put #1958040 on loom'])
+    end
+  end
+
+  # The loom wordings first seen in the 22:04 test run (2052 log).
+  describe 'the loom replies confirmed in game' do
+    it 'reads "You see the loom is loaded with some cotton thread." as a loaded loom (2052:12437)' do
+      expect(WeaveCloth::LOOM_LOADED).to match(log('2052:12437').text)
+      expect(WeaveCloth::LOOM_EMPTY).not_to match(log('2052:12437').text)
+    end
+
+    it 'reads the pull that gives the thread back as a pull (2052:12450)' do
+      expect(WeaveCloth::PULLED).to match(log('2052:12450').text)
+    end
+
+    it 'reads "You see nothing to pull off that." as an empty loom, not a pull (2052:12457)' do
+      expect(WeaveCloth::NOTHING_TO_PULL).to match(log('2052:12457').text)
+      expect(WeaveCloth::PULLED).not_to match(log('2052:12457').text)
     end
   end
 end
